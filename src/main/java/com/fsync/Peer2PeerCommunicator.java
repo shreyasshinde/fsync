@@ -24,8 +24,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
-import com.google.common.io.Files;
-
 
 /**
  * This class represents the Http interface through which the application receives and broadcasts
