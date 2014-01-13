@@ -13,10 +13,16 @@ public class App {
     public static void main( String[] args ) throws Exception {
     	DirectoryObserver observer= null;
     	try {
+    		
+    		// The checksum manager will keep track of all the file checksums in the 
+    		// shared directory
+    		ChecksumManager checksumManager = new ChecksumManager(AppProperties.get(AppProperties.SYNC_DIR));
+    		checksumManager.createChecksumOnDirectory();
+    		
 			// This communicator will broadcast directory updates to all
     		// peers while listening on an HTTP protocol for changes broadcasted
     		// by peers.
-			Peer2PeerCommunicator p2p = new Peer2PeerCommunicator();
+			Peer2PeerCommunicator p2p = new Peer2PeerCommunicator(checksumManager);
 			
 			// New directory observer
 			observer = new DirectoryObserver();

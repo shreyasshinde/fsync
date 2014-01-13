@@ -102,4 +102,12 @@ public class DirectoryChangeEvent {
 		}
 		return dce;
 	}
+	
+	/**
+	 * Creates a deep copy of the object.
+	 * @return a reference to new DirectoryChangeEvent object created from the current object.
+	 */
+	public DirectoryChangeEvent copy() {
+		return DirectoryChangeEvent.fromJSON(toJSON().toString());
+	}
 }
