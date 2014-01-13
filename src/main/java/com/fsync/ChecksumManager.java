@@ -83,16 +83,32 @@ public class ChecksumManager {
 		return checksums.get(key).equalsIgnoreCase(expected);
 	}
 	
+	/**
+	 * Returns the checksum of a file in the shared directory.
+	 * @param filepath the absolute path to the file whose checksum needs to be returned
+	 * @return the checksum if the file is present, null otherwise.
+	 */
 	public String getChecksum(String filepath) {
 		String key = filepath.replace(syncDirectory, "");
 		return checksums.get(key);
 	}
 	
+	/**
+	 * Returns the checksums on all the files in the shared directory.
+	 * @return a map of the relative file names in the shared directory and 
+	 *         their checksums.
+	 */
 	public Map<String,String> getChecksumOnDirectory() {
 		return new HashMap<>(checksums);
 		
 	}
 	
+	/**
+	 * This class returns the list of files traversed in 
+	 * a directory.
+	 * @author shreyas shinde
+	 *
+	 */
 	private static class FileVisitor extends SimpleFileVisitor<Path> {
 		List<Path> paths = new ArrayList<>();
 		

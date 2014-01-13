@@ -3,12 +3,14 @@ package com.fsync;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.fileupload.util.Streams;
 
 
 /**
@@ -103,6 +105,27 @@ public class ChecksumUtil {
 				bais.close();
 			} catch(IOException ignore) {
 			}
+		}
+	}
+	
+	/**
+	 * Copies the bytes from the input stream to output while computing the
+	 * checksum.
+	 * @param in the source of the bytes 
+	 * @param out the destination where the bytes need to be copied
+	 * @return the checksum of the bytes transferred from input to output.
+	 */
+	public static String computeChecksumAndCopy(InputStream in, OutputStream out) {
+		try {
+			// Just run the bytes through the DigestInputStream
+			MessageDigest md = MessageDigest.getInstance(messageDigestAlgorithm);
+			DigestInputStream dis = new DigestInputStream(in, md);
+			Streams.copy(dis, out, true);
+			byte[] digest = md.digest();
+			dis.close();
+			return new Base64().encodeAsString(digest);
+		} catch(Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 }
