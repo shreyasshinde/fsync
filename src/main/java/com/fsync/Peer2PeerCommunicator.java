@@ -1,11 +1,11 @@
 package com.fsync;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,18 +115,30 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 		
 		// The changed file
 		File f = null;
+		String checksum = "";
 		if(event.getType() == DirectoryChangeEventType.CREATED ||
 				event.getType() == DirectoryChangeEventType.MODIFIED) {
 			f = new File(absolutePath);
+			checksum = ChecksumUtil.computeChecksumForFile(absolutePath);
 		}
+		
+		// Test if the checksum of the updated file is the same as one 
+		// with the checksum manager.
+		if(checksumManager.isChecksumValid(checksum, absolutePath)) {
+			// We are aware of this change to don't notify to peers
+			return;
+		}
+		
+		// Update the known checksum 
+		checksumManager.updateChecksumOnFile(checksum, absolutePath);
 		
 		// The event that we intend to send to our peers
 		String eventParam = event.toJSON().toString();
-		Map<String,String> params = new HashMap<>();
+		Map<String,String> params = new HashMap<String,String>();
 		params.put(EVENT_PARAM, eventParam);
 		Map<String,File> files = null;
 		if(f != null) {
-			files = new HashMap<>();
+			files = new HashMap<String,File>();
 			files.put(FILE_PARAM, f);
 		}
 		
@@ -200,8 +212,8 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 	/**
 	 * This method applies the change sent by the peers to the local file system under
 	 * observation.
-	 * @param dce
-	 * @param data
+	 * @param dce applies the change as described in the event
+	 * @param data optional data if a file is modified or created
 	 */
 	private void updateDirectory(DirectoryChangeEvent dce, InputStream data) {
 		if(dce.getType() == null) {
@@ -217,10 +229,21 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 			// Copy the file from input to its appropriate location
 			String filepath = AppProperties.get(AppProperties.SYNC_DIR) + dce.getRelativeFilePath();
 			FileOutputStream out = null;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try {
+				// Copy the bytes into our buffer
+				Streams.copy(data, baos, true);
+				
+				// Compute the checksum
+				String checksum = ChecksumUtil.computeChecksumForData(baos.toByteArray());
+				
+				// Notify the checksum manager of the change
+				checksumManager.updateChecksumOnFile(checksum, filepath);
+				
+				// Update file on disk
 				out = new FileOutputStream(filepath);
 				logger.info("Updating file: " + filepath);
-				Streams.copy(data, out, true);
+				Streams.copy(new ByteArrayInputStream(baos.toByteArray()), out, true);
 				out.close();
 			} catch (Exception e) {
 				logger.severe("Failed to update file: " + filepath);
@@ -239,7 +262,11 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 			break;
 		case DELETED:
 			// Delete the file from disk
-			File f = new File(dce.getRelativeFilePath());
+			File f = new File(AppProperties.get(AppProperties.SYNC_DIR) + File.separator + dce.getRelativeFilePath());
+			
+			// Update the checksum
+			checksumManager.updateChecksumOnFile("", f.getAbsolutePath()); //empty out the checksum
+			
 			if(f.exists()) {
 				if(!f.delete()) {
 					logger.warning("Failed to delete file: " + f.getAbsolutePath());

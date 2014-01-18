@@ -13,7 +13,6 @@ public class App {
     public static void main( String[] args ) throws Exception {
     	DirectoryObserver observer= null;
     	try {
-    		
     		// The checksum manager will keep track of all the file checksums in the 
     		// shared directory
     		ChecksumManager checksumManager = new ChecksumManager(AppProperties.get(AppProperties.SYNC_DIR));

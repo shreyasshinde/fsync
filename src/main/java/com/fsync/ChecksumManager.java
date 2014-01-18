@@ -99,7 +99,7 @@ public class ChecksumManager {
 	 *         their checksums.
 	 */
 	public Map<String,String> getChecksumOnDirectory() {
-		return new HashMap<>(checksums);
+		return new HashMap<String,String>(checksums);
 		
 	}
 	
@@ -110,7 +110,7 @@ public class ChecksumManager {
 	 *
 	 */
 	private static class FileVisitor extends SimpleFileVisitor<Path> {
-		List<Path> paths = new ArrayList<>();
+		List<Path> paths = new ArrayList<Path>();
 		
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)

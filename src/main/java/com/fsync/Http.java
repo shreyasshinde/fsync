@@ -95,7 +95,7 @@ public class Http {
 		try {
 			// Constructing a UrlEncodedFormEntity to process text
 			// parameters
-			List<NameValuePair> params = new ArrayList<>();
+			List<NameValuePair> params = new ArrayList<NameValuePair>();
 			UrlEncodedFormEntity entity = null;
 			if(optParams != null && optParams.size() > 0) {
 				for(Entry<String, String> param: optParams.entrySet()) {
