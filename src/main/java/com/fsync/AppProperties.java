@@ -18,7 +18,7 @@ public class AppProperties {
 	
 	/** Names of properties */
 	public static final String SYNC_PEERS       = "sync.peers";
-	public static final String SYNC_DIR        = "sync.dir";
+	public static final String SYNC_DIR         = "sync.dir";
 	
 	static {
 		InputStream is;

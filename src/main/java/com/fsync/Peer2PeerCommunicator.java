@@ -106,7 +106,7 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 	 * directory observer and notifies peers of the change.
 	 */
 	public void listen(DirectoryChangeEvent dirChangeEvent) {
-		
+		logger.info("Event received: " + dirChangeEvent);
 		DirectoryChangeEvent event = dirChangeEvent.copy();
 		
 		// Absolute path to the file that has changed
@@ -126,6 +126,7 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 		// with the checksum manager.
 		if(checksumManager.isChecksumValid(checksum, absolutePath)) {
 			// We are aware of this change to don't notify to peers
+			logger.info("No change observed in the content. File change will not be broadcasted.");
 			return;
 		}
 		
@@ -174,7 +175,7 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 		updateContext.setHandler(new UpdateHandler());
 		updateContext.setContextPath("/update");
 		updateContext.setClassLoader(Thread.currentThread().getContextClassLoader());
-		updateContext.setResourceBase(".");
+		//updateContext.setResourceBase(".");
 		logger.fine("Setting the update context.");
 		
 		// Create a context that handles stopping the service
@@ -182,7 +183,7 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 		stopContext.setContextPath("/stop");
 		stopContext.setHandler(new StopHandler());
 		stopContext.setClassLoader(Thread.currentThread().getContextClassLoader());
-		stopContext.setResourceBase(".");
+		//stopContext.setResourceBase(".");
 		logger.fine("Setting the update context.");
 	
 		// Create a collection of context each to match an operation
@@ -340,14 +341,23 @@ public class Peer2PeerCommunicator implements DirectoryChangeListener {
 				HttpServletResponse arg3) throws IOException, ServletException {
 			// TODO: Check security
 			
-			// Stop the http server
-			try {
-				stop();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-			
+			// Stop the http server in another thread
+			Thread stopper = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(5000);
+						logger.info("Stopping the http listener.");
+						if(httpServer != null) {
+							httpServer.stop();
+						}
+						logger.info("Http listener stopped.");
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+			stopper.start();
 		}
-		
 	}
 }

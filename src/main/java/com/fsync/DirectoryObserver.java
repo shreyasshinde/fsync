@@ -180,6 +180,8 @@ public class DirectoryObserver {
 						continue;
 					}
 					
+					Path dir = keys.get(watchKey);
+					
 					// Process all the events on the key
 					for(WatchEvent<?> event : watchKey.pollEvents()) {
 						WatchEvent.Kind<?> kind = event.kind();
@@ -194,8 +196,8 @@ public class DirectoryObserver {
 						
 						// Create an event to notify
 						final DirectoryChangeEvent dce = new DirectoryChangeEvent();
-						dce.setAbsoluteFilePath(path.toFile().getAbsolutePath()); //absolute
-						dce.setRelativeFilePath(path.toFile().getAbsolutePath().replace(keys.get(watchKey).toString(), "")); //relative
+						dce.setAbsoluteFilePath(dir.resolve(path.toString()).toString()); //absolute
+						dce.setRelativeFilePath(path.toString()); //relative
 						dce.setTime(System.currentTimeMillis());
 						if(kind == StandardWatchEventKinds.ENTRY_CREATE) {
 							dce.setType(DirectoryChangeEventType.CREATED); 
@@ -207,6 +209,7 @@ public class DirectoryObserver {
 							logger.warning("Unknown event type '" + kind.name() + "'.");
 							continue;
 						}
+						logger.info("File change event created: " + dce);
 						
 						// Run the notifications in another thread
 						Thread t = new Thread(new Runnable() {
